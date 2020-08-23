@@ -1,0 +1,75 @@
+<div id="a">
+    <span>1</span>
+    <p>2</p>
+    <a href="#">3</a>
+    <div>4</div>
+</div>
+
+<!--
+    用node节点操作，会进行4次插入操作。
+    考点：
+        1、DOM的collection，它是一个living collection，就是
+        你操作的时候，取出来的childNodes，它的取出来的值，这个
+        集合它会跟着变化。
+        2、元素的子元素，它在insert的时候，是不需要先把它从原来
+        的位置挪掉的。因为DOM树的性质，你进行insert操作的时候，
+        如果它已经再DOM树上，或者是在另一棵DOM树上这都无所谓，它
+        一定会把它先remove下来，然后再把它append到新的树上的。
+        3、使用Range API高效的进行操作。
+-->
+
+<!-- 基本的操作 -->
+<script>
+    const element = document.getElementById('a')
+
+    function reverseChildren(element) {
+        const children = Array.prototype.slice.call(element.childNodes)
+
+        for (let child of children) {
+            element.removeChild(child)
+        }
+        // element.innerHTML = ""
+
+        children.reverse()
+
+        for(let child of children) {
+            element.appendChild(child)
+        }
+    }
+
+    reverseChildren(element)
+</script>
+
+<!-- 了解DOM API性质的解法 -->
+<script>
+    const element = document.getElementById('a')
+
+    function reverseChild(element) {
+        let len = element.childNodes.length
+        while(len-- > 0) {
+            element.appendChild(element.childNodes[len])
+        }
+    }
+
+    reverseChildren(element)
+</script>
+
+<!-- 高性能：用range和fragment去操作元素 （两次重排）-->
+<script>
+    const element = document.getElementById('a')
+
+    function reverseChildren(element) {
+        const range = new Range()
+        range.selectNodeContents(element)
+
+        const fragment = range.extractContents()
+        let fragLen = fragment.childNodes.length
+        while (fragLen-- > 0) {
+            fragment.appendChild(fragment.childNodes[fragLen])
+        }
+
+        element.appendChild(fragment)
+    }
+
+    reverseChildren(element)
+</script>
